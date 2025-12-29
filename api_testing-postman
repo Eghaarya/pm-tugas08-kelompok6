@@ -99,7 +99,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "1|q4YCOUekchkzX8VV3dtG2tthXebvjx2HGhziIs0Wc4807d7a",
+							"value": "2|7QyalPhII6OyeI7QnzFsnfKvqxVL8tYgpSMYdZzL7208c09b",
 							"type": "string"
 						}
 					]
@@ -162,7 +162,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "1|q4YCOUekchkzX8VV3dtG2tthXebvjx2HGhziIs0Wc4807d7a",
+							"value": "2|7QyalPhII6OyeI7QnzFsnfKvqxVL8tYgpSMYdZzL7208c09b",
 							"type": "string"
 						}
 					]
@@ -198,6 +198,79 @@
 					]
 				},
 				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "Update Data Transaksi",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "2|7QyalPhII6OyeI7QnzFsnfKvqxVL8tYgpSMYdZzL7208c09b",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"date\": \"2025-12-30\",\r\n  \"total\": 200,\r\n  \"items\": [\"Item C\"]\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://macrocytic-izayah-unpummeled.ngrok-free.dev/api/transactions/1",
+					"protocol": "http",
+					"host": [
+						"macrocytic-izayah-unpummeled",
+						"ngrok-free",
+						"dev"
+					],
+					"path": [
+						"api",
+						"transactions",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Data Transaksi",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "2|7QyalPhII6OyeI7QnzFsnfKvqxVL8tYgpSMYdZzL7208c09b",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://macrocytic-izayah-unpummeled.ngrok-free.dev/api/transactions/1",
+					"protocol": "http",
+					"host": [
+						"macrocytic-izayah-unpummeled",
+						"ngrok-free",
+						"dev"
+					],
+					"path": [
+						"api",
+						"transactions",
+						"1"
+					]
+				}
 			},
 			"response": []
 		}
