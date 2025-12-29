@@ -8,18 +8,30 @@ use App\Http\Controllers\Controller;
 
 class TransactionController extends Controller
 {
+    public function index()
+    {
+        return response()->json(
+            Transaction::latest()->get()
+        );
+    }
+
     public function store(Request $request)
     {
         $request->validate([
-            'date' => 'required|date',
+            'date'  => 'required|date',
             'total' => 'required|integer',
             'items' => 'required|array',
         ]);
 
-        return Transaction::create([
-            'date' => $request->date,
+        $transaction = Transaction::create([
+            'date'  => $request->date,
             'total' => $request->total,
             'items' => $request->items,
         ]);
+
+        return response()->json([
+            'message' => 'Transaction saved',
+            'data'    => $transaction
+        ], 201);
     }
 }
