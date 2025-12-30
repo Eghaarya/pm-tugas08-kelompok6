@@ -19,6 +19,29 @@ use App\Http\Controllers\API\TransactionController;
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    // ✅ CEK TOKEN / STATUS LOGIN
+    Route::get('/me', function (Request $request) {
+        return response()->json([
+            'status' => 'authenticated',
+            'user' => [
+                'id'       => $request->user()->id,
+                'username' => $request->user()->username,
+            ]
+        ]);
+    });
+
+    // 🔐 LOGOUT (HAPUS TOKEN)
+    Route::post('/logout', function (Request $request) {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'status'  => 'logged_out',
+            'message' => 'Logout berhasil'
+        ]);
+    });
+
+    // 📊 TRANSAKSI ROUTES
     Route::get('/transactions', [TransactionController::class, 'index']);
     Route::post('/transactions', [TransactionController::class, 'store']);
     Route::put('/transactions/{id}', [TransactionController::class, 'update']);

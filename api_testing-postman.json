@@ -76,6 +76,114 @@
 			"response": []
 		},
 		{
+			"name": "Cek Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|8taoyhIIwTU5lZNVQRxEaQAdd4irBFd3sQ2JlZ0m184ed449",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://macrocytic-izayah-unpummeled.ngrok-free.dev/api/me",
+					"protocol": "https",
+					"host": [
+						"macrocytic-izayah-unpummeled",
+						"ngrok-free",
+						"dev"
+					],
+					"path": [
+						"api",
+						"me"
+					]
+				},
+				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "3|8taoyhIIwTU5lZNVQRxEaQAdd4irBFd3sQ2JlZ0m184ed449",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://macrocytic-izayah-unpummeled.ngrok-free.dev/api/logout",
+					"protocol": "https",
+					"host": [
+						"macrocytic-izayah-unpummeled",
+						"ngrok-free",
+						"dev"
+					],
+					"path": [
+						"api",
+						"logout"
+					]
+				},
+				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
+			},
+			"response": []
+		},
+		{
 			"name": "Lihat Data Transaksi",
 			"event": [
 				{
@@ -99,7 +207,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "2|7QyalPhII6OyeI7QnzFsnfKvqxVL8tYgpSMYdZzL7208c09b",
+							"value": "3|8taoyhIIwTU5lZNVQRxEaQAdd4irBFd3sQ2JlZ0m184ed449",
 							"type": "string"
 						}
 					]

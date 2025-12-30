@@ -33,6 +33,7 @@ Authorization: Bearer {your-token}
 
 ---
 
+
 ## Endpoints
 
 ### 1. Login
@@ -56,7 +57,36 @@ Response:
 
 ---
 
-### 2. Get All Transactions
+### 2. Check Token / User Info
+**GET** `/me` 🔒
+
+Response:
+```json
+{
+  "status": "authenticated",
+  "user": {
+    "id": 1,
+    "username": "johndoe"
+  }
+}
+```
+
+---
+
+### 3. Logout
+**POST** `/logout` 🔒
+
+Response:
+```json
+{
+  "status": "logged_out",
+  "message": "Logout berhasil"
+}
+```
+
+---
+
+### 4. Get All Transactions
 **GET** `/transactions` 🔒
 
 Response:
@@ -73,7 +103,7 @@ Response:
 
 ---
 
-### 3. Create Transaction
+### 5. Create Transaction
 **POST** `/transactions` 🔒
 
 Request:
@@ -101,7 +131,7 @@ Response:
 
 ---
 
-### 4. Update Transaction
+### 6. Update Transaction
 **PUT** `/transactions/{id}` 🔒
 
 Request:
@@ -123,7 +153,7 @@ Response:
 
 ---
 
-### 5. Delete Transaction
+### 7. Delete Transaction
 **DELETE** `/transactions/{id}` 🔒
 
 Response:
