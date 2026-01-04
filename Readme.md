@@ -13,7 +13,8 @@ flutter run
 ```bash
 cd laravel_backend
 composer install
-ngrok http 8000
+cp .env.example .env
+php artisan key:generate
 php artisan migrate:fresh --seed
 php artisan serve
 ```
@@ -86,36 +87,24 @@ Response:
 
 ---
 
-### 4. Get All Transactions
-**GET** `/transactions` 🔒
-
-Response:
-```json
-[
-  {
-    "id": 1,
-    "date": "2024-12-29",
-    "total": 150000,
-    "items": [...]
-  }
-]
-```
-
----
-
-### 5. Create Transaction
-**POST** `/transactions` 🔒
+### 4. Backup Transaction
+**POST** `/backup` 🔒
 
 Request:
 ```json
 {
-  "date": "2024-12-29",
-  "total": 150000,
-  "items": [
+  "transactions": [
     {
-      "name": "Product A",
-      "price": 50000,
-      "quantity": 2
+      "date": "2026-01-04",
+      "total": 15000,
+      "items": [
+        {
+          "product_id": 1,
+          "name": "Kopi",
+          "qty": 1,
+          "price": 15000
+        }
+      ]
     }
   ]
 }
@@ -124,42 +113,7 @@ Request:
 Response:
 ```json
 {
-  "message": "Transaction saved",
-  "data": {...}
-}
-```
-
----
-
-### 6. Update Transaction
-**PUT** `/transactions/{id}` 🔒
-
-Request:
-```json
-{
-  "date": "2024-12-29",
-  "total": 200000,
-  "items": [...]
-}
-```
-
-Response:
-```json
-{
-  "message": "Transaction updated",
-  "data": {...}
-}
-```
-
----
-
-### 7. Delete Transaction
-**DELETE** `/transactions/{id}` 🔒
-
-Response:
-```json
-{
-  "message": "Transaction deleted"
+  "message": "Backup to database was successful",
 }
 ```
 

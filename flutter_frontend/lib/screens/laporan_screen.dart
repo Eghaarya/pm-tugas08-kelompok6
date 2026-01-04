@@ -216,10 +216,28 @@ class _LaporanScreenState extends State<LaporanScreen> {
     try {
       final allData = await DatabaseHelper.instance.getAllDataForBackup();
 
-      //server upload
-      final success = await BackupApi.backup(
-        List<Map<String, dynamic>>.from(allData['transactions']),
+      // Process transactions to include items
+      final rawTransactions = List<Map<String, dynamic>>.from(
+        allData['transactions'],
       );
+      List<Map<String, dynamic>> processedTransactions = [];
+
+      for (var trx in rawTransactions) {
+        int trxId = trx['id'];
+        List<Map<String, dynamic>> items = await DatabaseHelper.instance
+            .getTransactionItems(trxId);
+
+        Map<String, dynamic> processedTrx = {
+          'date': trx['transaction_date'],
+          'total': trx['total'],
+          'items': items,
+        };
+
+        processedTransactions.add(processedTrx);
+      }
+
+      //server upload
+      final success = await BackupApi.backup(processedTransactions);
 
       if (!success) {
         throw Exception('Backup gagal');
@@ -350,8 +368,8 @@ class _LaporanScreenState extends State<LaporanScreen> {
                   TextField(
                     controller: _emailController,
                     decoration: InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: const Icon(Icons.email),
+                      labelText: 'Username',
+                      prefixIcon: const Icon(Icons.person),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -413,21 +431,6 @@ class _LaporanScreenState extends State<LaporanScreen> {
               decoration: BoxDecoration(
                 color: Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info, color: Colors.blue.shade700, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Demo: admin@apotek.com / admin123',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue.shade700,
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
           ],
@@ -496,82 +499,15 @@ class _LaporanScreenState extends State<LaporanScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  const Text(
-                    'Laporan Penjualan',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildReportCard(
-                    'Laporan Harian',
-                    'Lihat laporan penjualan hari ini',
-                    Icons.today,
-                    () => _showDateRangePicker('Harian'),
-                  ),
-                  _buildReportCard(
-                    'Laporan Mingguan',
-                    'Lihat laporan penjualan minggu ini',
-                    Icons.date_range,
-                    () => _showDateRangePicker('Mingguan'),
-                  ),
-                  _buildReportCard(
-                    'Laporan Bulanan',
-                    'Lihat laporan penjualan bulan ini',
-                    Icons.calendar_month,
-                    () => _showDateRangePicker('Bulanan'),
-                  ),
-                  _buildReportCard(
-                    'Laporan Custom',
-                    'Pilih rentang tanggal sendiri',
-                    Icons.calendar_today,
-                    () => _showDateRangePicker('Custom'),
-                  ),
+
                   const SizedBox(height: 24),
                   const Text(
-                    'Laporan Lainnya',
+                    'Laporan',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildReportCard(
-                    'Laporan Stok',
-                    'Lihat stok produk dan notifikasi stok rendah',
-                    Icons.inventory_2,
-                    () async {
-                      final lowStock = await DatabaseHelper.instance
-                          .getLowStockProducts(10);
-                      if (mounted) {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Laporan Stok'),
-                            content: lowStock.isEmpty
-                                ? const Text('Semua produk memiliki stok cukup')
-                                : Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: lowStock
-                                        .map(
-                                          (p) => ListTile(
-                                            title: Text(p['name']),
-                                            subtitle: Text(
-                                              'Stok: ${p['stock']} ${p['unit']}',
-                                            ),
-                                          ),
-                                        )
-                                        .toList(),
-                                  ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Tutup'),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-                    },
                   ),
                   _buildReportCard(
                     'Backup Data',
-                    'Backup semua data ke server',
+                    'Backup semua data transaksi ke server',
                     Icons.cloud_upload,
                     _backupToServer,
                   ),

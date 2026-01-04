@@ -30,7 +30,7 @@ class BackupController extends Controller
 
 
         return response()->json([
-            'message' => 'Backup ke database berhasil'
-        ], 200); // 🔥 PAKSA 200
+            'message' => 'Backup to database was successful'
+        ], 200);
     }
 }

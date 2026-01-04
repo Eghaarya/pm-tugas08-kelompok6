@@ -6,10 +6,7 @@ class AuthApi {
   static Future<String?> login(String username, String password) async {
     final res = await ApiClient.post(
       '/login',
-      body: {
-        'username': username,
-        'password': password,
-      },
+      body: {'username': username, 'password': password},
     );
 
     if (res.statusCode == 200) {

@@ -3,7 +3,6 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\TransactionController;
 use App\Http\Controllers\API\BackupController;
 
 /*
@@ -36,12 +35,6 @@ Route::middleware('auth:sanctum')->group(function () {
             'message' => 'Logout berhasil'
         ]);
     });
-
-    // 📊 TRANSAKSI
-    Route::get('/transactions', [TransactionController::class, 'index']);
-    Route::post('/transactions', [TransactionController::class, 'store']);
-    Route::put('/transactions/{id}', [TransactionController::class, 'update']);
-    Route::delete('/transactions/{id}', [TransactionController::class, 'destroy']);
 
     // ☁️ BACKUP KE DATABASE
     Route::post('/backup', [BackupController::class, 'store']);

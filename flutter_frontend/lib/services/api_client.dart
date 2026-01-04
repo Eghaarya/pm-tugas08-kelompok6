@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class ApiClient {
   static const String baseUrl =
-      'https://semisentimentalized-scornedly-tate.ngrok-free.dev/api';
+      'https://macrocytic-izayah-unpummeled.ngrok-free.dev/api';
 
   static Map<String, String> headers({String? token}) {
     final headers = {
@@ -25,8 +25,11 @@ class ApiClient {
     );
   }
 
-  static Future<http.Response> post(String endpoint,
-      {Map<String, dynamic>? body, String? token}) {
+  static Future<http.Response> post(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) {
     return http.post(
       Uri.parse('$baseUrl$endpoint'),
       headers: headers(token: token),
@@ -34,8 +37,11 @@ class ApiClient {
     );
   }
 
-  static Future<http.Response> put(String endpoint,
-      {Map<String, dynamic>? body, String? token}) {
+  static Future<http.Response> put(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    String? token,
+  }) {
     return http.put(
       Uri.parse('$baseUrl$endpoint'),
       headers: headers(token: token),

@@ -7,38 +7,32 @@
 		"_exporter_id": "51109991",
 		"_collection_link": "https://eghaarya72-175047.postman.co/workspace/Egha-Arya's-Workspace~23843c0a-c4a7-4902-874f-88be9e3f3134/collection/51109991-c366115a-1a3f-47d0-83a0-1e3fdce54caa?action=share&source=collection_link&creator=51109991"
 	},
-	"item": [
-		{
+	"item": [{
 			"name": "Login",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
+			"event": [{
+				"listen": "test",
+				"script": {
+					"exec": [
+						"pm.test(\"Status code is 200\", function () {",
+						"    pm.response.to.have.status(200);",
+						"});"
+					],
+					"type": "text/javascript",
+					"packages": {},
+					"requests": {}
 				}
-			],
+			}],
 			"request": {
 				"auth": {
 					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "",
-							"type": "string"
-						}
-					]
+					"bearer": [{
+						"key": "token",
+						"value": "",
+						"type": "string"
+					}]
 				},
 				"method": "POST",
-				"header": [
-					{
+				"header": [{
 						"key": "Accept",
 						"value": "application/json",
 						"type": "text"
@@ -77,41 +71,35 @@
 		},
 		{
 			"name": "Cek Token",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Successful POST request\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-							"});",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
+			"event": [{
+				"listen": "test",
+				"script": {
+					"exec": [
+						"pm.test(\"Successful POST request\", function () {",
+						"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+						"});",
+						""
+					],
+					"type": "text/javascript",
+					"packages": {},
+					"requests": {}
 				}
-			],
+			}],
 			"request": {
 				"auth": {
 					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "3|8taoyhIIwTU5lZNVQRxEaQAdd4irBFd3sQ2JlZ0m184ed449",
-							"type": "string"
-						}
-					]
+					"bearer": [{
+						"key": "token",
+						"value": "3|8taoyhIIwTU5lZNVQRxEaQAdd4irBFd3sQ2JlZ0m184ed449",
+						"type": "string"
+					}]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
+				"header": [{
+					"key": "Accept",
+					"value": "application/json",
+					"type": "text"
+				}],
 				"url": {
 					"raw": "https://macrocytic-izayah-unpummeled.ngrok-free.dev/api/me",
 					"protocol": "https",
@@ -131,41 +119,35 @@
 		},
 		{
 			"name": "Logout",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Successful POST request\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-							"});",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
+			"event": [{
+				"listen": "test",
+				"script": {
+					"exec": [
+						"pm.test(\"Successful POST request\", function () {",
+						"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+						"});",
+						""
+					],
+					"type": "text/javascript",
+					"packages": {},
+					"requests": {}
 				}
-			],
+			}],
 			"request": {
 				"auth": {
 					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "3|8taoyhIIwTU5lZNVQRxEaQAdd4irBFd3sQ2JlZ0m184ed449",
-							"type": "string"
-						}
-					]
+					"bearer": [{
+						"key": "token",
+						"value": "3|8taoyhIIwTU5lZNVQRxEaQAdd4irBFd3sQ2JlZ0m184ed449",
+						"type": "string"
+					}]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
+				"header": [{
+					"key": "Accept",
+					"value": "application/json",
+					"type": "text"
+				}],
 				"url": {
 					"raw": "https://macrocytic-izayah-unpummeled.ngrok-free.dev/api/logout",
 					"protocol": "https",
@@ -184,108 +166,39 @@
 			"response": []
 		},
 		{
-			"name": "Lihat Data Transaksi",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Successful POST request\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-							"});",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "3|8taoyhIIwTU5lZNVQRxEaQAdd4irBFd3sQ2JlZ0m184ed449",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "https://macrocytic-izayah-unpummeled.ngrok-free.dev/api/transactions",
-					"protocol": "https",
-					"host": [
-						"macrocytic-izayah-unpummeled",
-						"ngrok-free",
-						"dev"
+			"name": "Backup Data Transaksi",
+			"event": [{
+				"listen": "test",
+				"script": {
+					"exec": [
+						"pm.test(\"Successful POST request\", function () {",
+						"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+						"});",
+						""
 					],
-					"path": [
-						"api",
-						"transactions"
-					]
-				},
-				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
-			},
-			"response": []
-		},
-		{
-			"name": "Insert Data Transaksi",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Successful POST request\", function () {",
-							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
-							"});",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
+					"type": "text/javascript",
+					"packages": {},
+					"requests": {}
 				}
-			],
+			}],
 			"request": {
 				"auth": {
 					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "2|7QyalPhII6OyeI7QnzFsnfKvqxVL8tYgpSMYdZzL7208c09b",
-							"type": "string"
-						}
-					]
+					"bearer": [{
+						"key": "token",
+						"value": "7|oVolbHyxRBo69W4fPLATvSxkurNqsZjP19Zy1AhYcfdd71a3",
+						"type": "string"
+					}]
 				},
 				"method": "POST",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
+				"header": [{
+					"key": "Accept",
+					"value": "application/json",
+					"type": "text"
+				}],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"date\": \"2025-12-29\",\n  \"total\": 150000,\n  \"items\": [\n    {\n      \"product\": \"Kopi\",\n      \"qty\": 2,\n      \"price\": 50000\n    }\n  ]\n}\n",
+					"raw": "{\n  \"transactions\": [\n    {\n      \"date\": \"2026-01-04\",\n      \"total\": 15000,\n      \"items\": [\n        {\n          \"product_id\": 1,\n          \"name\": \"Kopi\",\n          \"qty\": 1,\n          \"price\": 15000\n        }\n      ]\n    }\n  ]\n}\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -293,7 +206,7 @@
 					}
 				},
 				"url": {
-					"raw": "https://macrocytic-izayah-unpummeled.ngrok-free.dev/api/transactions",
+					"raw": "https://macrocytic-izayah-unpummeled.ngrok-free.dev/api/backup",
 					"protocol": "https",
 					"host": [
 						"macrocytic-izayah-unpummeled",
@@ -302,83 +215,10 @@
 					],
 					"path": [
 						"api",
-						"transactions"
+						"backup"
 					]
 				},
 				"description": "This is a POST request, submitting data to an API via the request body. This request submits JSON data, and the data is reflected in the response.\n\nA successful POST request typically returns a `200 OK` or `201 Created` response code."
-			},
-			"response": []
-		},
-		{
-			"name": "Update Data Transaksi",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "2|7QyalPhII6OyeI7QnzFsnfKvqxVL8tYgpSMYdZzL7208c09b",
-							"type": "string"
-						}
-					]
-				},
-				"method": "PUT",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\r\n  \"date\": \"2025-12-30\",\r\n  \"total\": 200,\r\n  \"items\": [\"Item C\"]\r\n}\r\n",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "http://macrocytic-izayah-unpummeled.ngrok-free.dev/api/transactions/1",
-					"protocol": "http",
-					"host": [
-						"macrocytic-izayah-unpummeled",
-						"ngrok-free",
-						"dev"
-					],
-					"path": [
-						"api",
-						"transactions",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Delete Data Transaksi",
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "2|7QyalPhII6OyeI7QnzFsnfKvqxVL8tYgpSMYdZzL7208c09b",
-							"type": "string"
-						}
-					]
-				},
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "http://macrocytic-izayah-unpummeled.ngrok-free.dev/api/transactions/1",
-					"protocol": "http",
-					"host": [
-						"macrocytic-izayah-unpummeled",
-						"ngrok-free",
-						"dev"
-					],
-					"path": [
-						"api",
-						"transactions",
-						"1"
-					]
-				}
 			},
 			"response": []
 		}

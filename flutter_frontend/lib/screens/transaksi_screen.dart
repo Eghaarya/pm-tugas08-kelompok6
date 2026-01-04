@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../helpers/database_helper.dart';
-import '../services/transaction_api.dart';
-import '../helpers/token_helper.dart';
 
 class TransaksiScreen extends StatefulWidget {
   const TransaksiScreen({Key? key}) : super(key: key);
@@ -11,17 +9,6 @@ class TransaksiScreen extends StatefulWidget {
 }
 
 class _TransaksiScreenState extends State<TransaksiScreen> {
-  Future<void> _checkAuth() async {
-    final token = await TokenHelper.getToken();
-    if (!mounted) return;
-
-    if (token == null) {
-      Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      _loadTransactions(); // 🔥 pindahkan ke sini
-    }
-  }
-
   List<Map<String, dynamic>> transactions = [];
   List<Map<String, dynamic>> filteredTransactions = [];
   bool isLoading = true;
@@ -31,25 +18,30 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
   @override
   void initState() {
     super.initState();
-    _checkAuth();
+    _loadTransactions();
   }
 
   Future<void> _loadTransactions() async {
     setState(() => isLoading = true);
-
     try {
-      final token = await TokenHelper.getToken();
-      if (token == null) return;
-
-      final data = await TransactionApi.fetchTransactions(token);
-
-      setState(() {
-        transactions = List<Map<String, dynamic>>.from(data);
-        filteredTransactions = transactions;
-        isLoading = false;
-      });
+      final data = await DatabaseHelper.instance.getAllTransactions();
+      if (mounted) {
+        setState(() {
+          transactions = data;
+          filteredTransactions = data;
+          isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading transactions: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
