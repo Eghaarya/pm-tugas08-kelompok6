@@ -1,20 +1,21 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../helpers/database_helper.dart';
+import '../helpers/image_helper.dart';
 
-class ProdukScreenEnhanced extends StatefulWidget {
-  const ProdukScreenEnhanced({Key? key}) : super(key: key);
+class ProdukScreen extends StatefulWidget {
+  const ProdukScreen({Key? key}) : super(key: key);
 
   @override
-  State<ProdukScreenEnhanced> createState() => _ProdukScreenEnhancedState();
+  State<ProdukScreen> createState() => _ProdukScreenState();
 }
 
-class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
+class _ProdukScreenState extends State<ProdukScreen> {
   List<Map<String, dynamic>> products = [];
   List<Map<String, dynamic>> filteredProducts = [];
   bool isLoading = true;
   final _searchController = TextEditingController();
 
-  // Dropdown options
   final List<String> units = [
     'Tablet',
     'Kaplet',
@@ -62,10 +63,7 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
       if (mounted) {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -92,15 +90,10 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
 
   String _generateProductId() {
     if (products.isEmpty) return 'PRD001';
-    
-    // Get last product ID
     final lastProduct = products.last;
     final lastId = lastProduct['product_id'] as String;
-    
-    // Extract number from ID (assuming format: PRDxxx)
     final numStr = lastId.replaceAll(RegExp(r'[^0-9]'), '');
     if (numStr.isEmpty) return 'PRD001';
-    
     final num = int.parse(numStr) + 1;
     return 'PRD${num.toString().padLeft(3, '0')}';
   }
@@ -109,7 +102,8 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
     final now = DateTime.now();
     final year = now.year.toString().substring(2);
     final month = now.month.toString().padLeft(2, '0');
-    final random = (now.millisecondsSinceEpoch % 10000).toString().padLeft(4, '0');
+    final random =
+        (now.millisecondsSinceEpoch % 10000).toString().padLeft(4, '0');
     return 'BTH$year$month$random';
   }
 
@@ -131,8 +125,8 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
 
   void _showProductDialog({Map<String, dynamic>? product}) {
     final isEdit = product != null;
-    
-    // Controllers
+    String? imagePath = product?['image_path'];
+
     final idController = TextEditingController(
       text: isEdit ? product['product_id'] : _generateProductId(),
     );
@@ -147,7 +141,6 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
     final expController =
         TextEditingController(text: product?['exp_date'] ?? '');
 
-    // Dropdown values
     String? selectedUnit = product?['unit'];
     String? selectedCategory = product?['category'];
     bool isPrescription = product?['is_prescription'] == 1;
@@ -163,14 +156,104 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                 color: const Color(0xFF1FA397),
               ),
               const SizedBox(width: 8),
-              Text(isEdit ? 'Edit Produk' : 'Tambah Produk'),
+              Expanded(
+                child: Text(isEdit ? 'Edit Produk' : 'Tambah Produk'),
+              ),
             ],
           ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Product ID - Auto generated
+                // === GAMBAR PRODUK ===
+                GestureDetector(
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => SafeArea(
+                        child: Wrap(
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.photo_camera),
+                              title: const Text('Ambil Foto'),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                final newPath =
+                                    await ImageHelper.pickImageFromCamera();
+                                if (newPath != null) {
+                                  // Hapus gambar lama jika ada
+                                  if (imagePath != null) {
+                                    await ImageHelper.deleteImage(imagePath);
+                                  }
+                                  setDialogState(() => imagePath = newPath);
+                                }
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.photo_library),
+                              title: const Text('Pilih dari Galeri'),
+                              onTap: () async {
+                                Navigator.pop(context);
+                                final newPath =
+                                    await ImageHelper.pickImageFromGallery();
+                                if (newPath != null) {
+                                  // Hapus gambar lama jika ada
+                                  if (imagePath != null) {
+                                    await ImageHelper.deleteImage(imagePath);
+                                  }
+                                  setDialogState(() => imagePath = newPath);
+                                }
+                              },
+                            ),
+                            if (imagePath != null)
+                              ListTile(
+                                leading:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                title: const Text('Hapus Gambar'),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  setDialogState(() => imagePath = null);
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    height: 150,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: imagePath != null &&
+                            ImageHelper.getImageFile(imagePath) != null &&
+                            ImageHelper.getImageFile(imagePath)!.existsSync()
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              ImageHelper.getImageFile(imagePath)!,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_photo_alternate,
+                                  size: 48, color: Colors.grey.shade400),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Tap untuk upload foto produk',
+                                style: TextStyle(color: Colors.grey.shade600),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
                 TextField(
                   controller: idController,
                   decoration: InputDecoration(
@@ -189,8 +272,6 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                   enabled: !isEdit,
                 ),
                 const SizedBox(height: 12),
-                
-                // Product Name
                 TextField(
                   controller: nameController,
                   decoration: const InputDecoration(
@@ -201,8 +282,6 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                   textCapitalization: TextCapitalization.words,
                 ),
                 const SizedBox(height: 12),
-                
-                // Price
                 TextField(
                   controller: priceController,
                   keyboardType: TextInputType.number,
@@ -214,8 +293,6 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
-                // Stock
                 TextField(
                   controller: stockController,
                   keyboardType: TextInputType.number,
@@ -226,8 +303,6 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
-                // Unit - Dropdown
                 DropdownButtonFormField<String>(
                   value: selectedUnit,
                   decoration: const InputDecoration(
@@ -236,18 +311,13 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                     prefixIcon: Icon(Icons.category),
                   ),
                   items: units.map((unit) {
-                    return DropdownMenuItem(
-                      value: unit,
-                      child: Text(unit),
-                    );
+                    return DropdownMenuItem(value: unit, child: Text(unit));
                   }).toList(),
                   onChanged: (value) {
                     setDialogState(() => selectedUnit = value);
                   },
                 ),
                 const SizedBox(height: 12),
-                
-                // Category - Dropdown
                 DropdownButtonFormField<String>(
                   value: selectedCategory,
                   decoration: const InputDecoration(
@@ -257,17 +327,13 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                   ),
                   items: categories.map((category) {
                     return DropdownMenuItem(
-                      value: category,
-                      child: Text(category),
-                    );
+                        value: category, child: Text(category));
                   }).toList(),
                   onChanged: (value) {
                     setDialogState(() => selectedCategory = value);
                   },
                 ),
                 const SizedBox(height: 12),
-                
-                // Batch - Auto generated
                 TextField(
                   controller: batchController,
                   decoration: InputDecoration(
@@ -283,8 +349,6 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                
-                // Expired Date - Date Picker
                 TextField(
                   controller: expController,
                   decoration: InputDecoration(
@@ -301,8 +365,6 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                   onTap: () => _selectDate(context, expController),
                 ),
                 const SizedBox(height: 12),
-                
-                // Is Prescription
                 CheckboxListTile(
                   title: const Text('Memerlukan Resep'),
                   value: isPrescription,
@@ -322,7 +384,6 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
             ),
             ElevatedButton(
               onPressed: () async {
-                // Validation
                 if (idController.text.isEmpty ||
                     nameController.text.isEmpty ||
                     priceController.text.isEmpty ||
@@ -331,7 +392,7 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                     selectedCategory == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Semua field dengan * harus diisi!'),
+                      content: Text('Field dengan * harus diisi!'),
                       backgroundColor: Colors.red,
                     ),
                   );
@@ -356,10 +417,16 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                     'category': selectedCategory,
                     'batch': batchController.text,
                     'exp_date': expController.text,
+                    'image_path': imagePath,
                     'is_prescription': isPrescription ? 1 : 0,
                   };
 
                   if (isEdit) {
+                    // Hapus gambar lama jika diganti
+                    if (product['image_path'] != imagePath &&
+                        product['image_path'] != null) {
+                      await ImageHelper.deleteImage(product['image_path']);
+                    }
                     await DatabaseHelper.instance
                         .updateProduct(product['id'], productData);
                   } else {
@@ -410,7 +477,7 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Hapus Produk'),
-        content: Text('Apakah Anda yakin ingin menghapus ${product['name']}?'),
+        content: Text('Yakin hapus ${product['name']}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -427,6 +494,9 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
               );
 
               try {
+                if (product['image_path'] != null) {
+                  await ImageHelper.deleteImage(product['image_path']);
+                }
                 await DatabaseHelper.instance.deleteProduct(product['id']);
                 await _loadProducts();
 
@@ -460,6 +530,9 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
   }
 
   void _showProductDetail(Map<String, dynamic> product) {
+    final hasImage = product['image_path'] != null &&
+        ImageHelper.imageExists(product['image_path']) as bool;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -469,6 +542,17 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (hasImage)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    ImageHelper.getImageFile(product['image_path'])!,
+                    height: 200,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              if (hasImage) const SizedBox(height: 16),
               _buildDetailRow('ID', product['product_id']),
               _buildDetailRow('Harga', 'Rp ${product['price']}'),
               _buildDetailRow(
@@ -477,9 +561,7 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
               _buildDetailRow('Batch', product['batch'] ?? '-'),
               _buildDetailRow('Expired', product['exp_date'] ?? '-'),
               _buildDetailRow(
-                'Resep',
-                product['is_prescription'] == 1 ? 'Ya' : 'Tidak',
-              ),
+                  'Resep', product['is_prescription'] == 1 ? 'Ya' : 'Tidak'),
             ],
           ),
         ),
@@ -573,13 +655,10 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                             Icon(Icons.inventory_2,
                                 size: 80, color: Colors.grey.shade400),
                             const SizedBox(height: 16),
-                            Text(
-                              'Belum ada produk',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
+                            Text('Belum ada produk',
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade600)),
                           ],
                         ),
                       )
@@ -591,6 +670,13 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                           itemBuilder: (context, index) {
                             final product = filteredProducts[index];
                             final isLowStock = product['stock'] < 10;
+                            final hasImage = product['image_path'] != null &&
+                                ImageHelper.getImageFile(
+                                        product['image_path']) !=
+                                    null &&
+                                ImageHelper.getImageFile(product['image_path'])!
+                                    .existsSync();
+
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
@@ -613,11 +699,18 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                                     color: const Color(0xFFE0F2F1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Icon(
-                                    Icons.medication,
-                                    color: Color(0xFF1FA397),
-                                    size: 30,
-                                  ),
+                                  child: hasImage
+                                      ? ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          child: Image.file(
+                                            ImageHelper.getImageFile(
+                                                product['image_path'])!,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : const Icon(Icons.medication,
+                                          color: Color(0xFF1FA397), size: 30),
                                 ),
                                 title: Text(
                                   product['name'],
@@ -694,7 +787,8 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
                                               size: 20, color: Colors.red),
                                           SizedBox(width: 8),
                                           Text('Hapus',
-                                              style: TextStyle(color: Colors.red)),
+                                              style:
+                                                  TextStyle(color: Colors.red)),
                                         ],
                                       ),
                                     ),
@@ -722,10 +816,8 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
         onPressed: () => _showProductDialog(),
         backgroundColor: const Color(0xFF1FA397),
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Tambah Produk',
-          style: TextStyle(color: Colors.white),
-        ),
+        label: const Text('Tambah Produk',
+            style: TextStyle(color: Colors.white)),
       ),
     );
   }
@@ -757,16 +849,5 @@ class _ProdukScreenEnhancedState extends State<ProdukScreenEnhanced> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-}
-
-// Wrapper providing the original `ProdukScreen` name with a const constructor
-// so callers can use `const ProdukScreen()` as before.
-class ProdukScreen extends StatelessWidget {
-  const ProdukScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const ProdukScreenEnhanced();
   }
 }

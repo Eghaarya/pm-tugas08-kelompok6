@@ -17,16 +17,28 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    print('📁 Database path: $path');
+    print('📂 Database path: $path');
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // ✅ TINGKATKAN VERSI DARI 1 KE 2
       onCreate: _createDB,
+      onUpgrade: _onUpgrade, // ✅ TAMBAHKAN UPGRADE HANDLER
       onOpen: (db) {
         print('✅ Database opened successfully');
       },
     );
+  }
+
+  // ✅ HANDLER UNTUK UPGRADE DATABASE
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    print('🔄 Upgrading database from v$oldVersion to v$newVersion');
+    
+    if (oldVersion < 2) {
+      // Tambahkan kolom image_path ke tabel products
+      await db.execute('ALTER TABLE products ADD COLUMN image_path TEXT');
+      print('✅ Added image_path column to products table');
+    }
   }
 
   Future _createDB(Database db, int version) async {
@@ -36,7 +48,7 @@ class DatabaseHelper {
     const textType = 'TEXT NOT NULL';
     const intType = 'INTEGER NOT NULL';
 
-    // Table Products
+    // Table Products - ✅ TAMBAHKAN KOLOM image_path
     await db.execute('''
       CREATE TABLE products (
         id $idType,
@@ -48,6 +60,7 @@ class DatabaseHelper {
         category $textType,
         batch TEXT,
         exp_date TEXT,
+        image_path TEXT,
         is_prescription INTEGER DEFAULT 0,
         created_at $textType,
         updated_at $textType
@@ -126,6 +139,7 @@ class DatabaseHelper {
       'category': 'Obat Bebas',
       'batch': 'BTHOB001002',
       'exp_date': '2026-12-26',
+      'image_path': null,
       'is_prescription': 0,
       'created_at': now,
       'updated_at': now,
@@ -140,6 +154,7 @@ class DatabaseHelper {
       'category': 'Obat Bebas',
       'batch': 'BTHOB002002',
       'exp_date': '2026-12-26',
+      'image_path': null,
       'is_prescription': 0,
       'created_at': now,
       'updated_at': now,
@@ -154,6 +169,7 @@ class DatabaseHelper {
       'category': 'Obat Bebas',
       'batch': 'BTHOB003001',
       'exp_date': '2026-12-26',
+      'image_path': null,
       'is_prescription': 0,
       'created_at': now,
       'updated_at': now,
@@ -168,6 +184,7 @@ class DatabaseHelper {
       'category': 'Obat Bebas Terbatas',
       'batch': 'BTHOB004001',
       'exp_date': '2026-12-26',
+      'image_path': null,
       'is_prescription': 0,
       'created_at': now,
       'updated_at': now,
@@ -182,6 +199,7 @@ class DatabaseHelper {
       'category': 'Obat Keras',
       'batch': 'BTHOB005001',
       'exp_date': '2026-12-26',
+      'image_path': null,
       'is_prescription': 1,
       'created_at': now,
       'updated_at': now,

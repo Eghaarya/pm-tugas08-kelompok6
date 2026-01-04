@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../helpers/database_helper.dart';
+import '../helpers/image_helper.dart'; // ✅ IMPORT IMAGE HELPER
 import 'checkout_screen.dart';
 
 class KasirScreen extends StatefulWidget {
@@ -148,6 +150,10 @@ class _KasirScreenState extends State<KasirScreen> {
                     itemCount: cart.length,
                     itemBuilder: (context, index) {
                       final item = cart[index];
+                      final hasImage = item['image_path'] != null &&
+                          ImageHelper.getImageFile(item['image_path']) != null &&
+                          ImageHelper.getImageFile(item['image_path'])!.existsSync();
+
                       return Container(
                         margin: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -162,12 +168,33 @@ class _KasirScreenState extends State<KasirScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
+                                // ✅ GAMBAR PRODUK DI CART
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE0F2F1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: hasImage
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: Image.file(
+                                            ImageHelper.getImageFile(item['image_path'])!,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.medication,
+                                          color: Color(0xFF1FA397),
+                                          size: 30,
+                                        ),
+                                ),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         item['name'],
@@ -209,8 +236,7 @@ class _KasirScreenState extends State<KasirScreen> {
                               children: [
                                 Container(
                                   decoration: BoxDecoration(
-                                    border:
-                                        Border.all(color: Colors.grey.shade300),
+                                    border: Border.all(color: Colors.grey.shade300),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
@@ -237,15 +263,12 @@ class _KasirScreenState extends State<KasirScreen> {
                                         icon: const Icon(Icons.add, size: 20),
                                         onPressed: () {
                                           setModalState(() {
-                                            if (item['quantity'] <
-                                                item['stock']) {
+                                            if (item['quantity'] < item['stock']) {
                                               item['quantity']++;
                                             } else {
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
+                                              ScaffoldMessenger.of(context).showSnackBar(
                                                 const SnackBar(
-                                                  content: Text(
-                                                      'Quantity melebihi stok!'),
+                                                  content: Text('Quantity melebihi stok!'),
                                                 ),
                                               );
                                             }
@@ -257,8 +280,7 @@ class _KasirScreenState extends State<KasirScreen> {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.red),
+                                  icon: const Icon(Icons.delete, color: Colors.red),
                                   onPressed: () {
                                     setModalState(() => cart.removeAt(index));
                                     setState(() {});
@@ -469,6 +491,11 @@ class _KasirScreenState extends State<KasirScreen> {
                         itemBuilder: (context, index) {
                           final product = filteredProducts[index];
                           final isLowStock = product['stock'] < 10;
+                          // ✅ CEK APAKAH PRODUK PUNYA GAMBAR
+                          final hasImage = product['image_path'] != null &&
+                              ImageHelper.getImageFile(product['image_path']) != null &&
+                              ImageHelper.getImageFile(product['image_path'])!.existsSync();
+
                           return InkWell(
                             onTap: () => _addToCart(product),
                             child: Container(
@@ -521,22 +548,36 @@ class _KasirScreenState extends State<KasirScreen> {
                                       ],
                                     ),
                                   ),
+                                  // ✅ TAMPILKAN GAMBAR PRODUK ATAU ICON
                                   Expanded(
                                     child: Center(
-                                      child: Container(
-                                        width: 80,
-                                        height: 80,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade100,
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                        ),
-                                        child: Icon(
-                                          Icons.medication,
-                                          size: 40,
-                                          color: Colors.grey.shade400,
-                                        ),
-                                      ),
+                                      child: hasImage
+                                          ? Padding(
+                                              padding: const EdgeInsets.all(8.0),
+                                              child: ClipRRect(
+                                                borderRadius: BorderRadius.circular(8),
+                                                child: Image.file(
+                                                  ImageHelper.getImageFile(product['image_path'])!,
+                                                  width: double.infinity,
+                                                  height: double.infinity,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            )
+                                          : Container(
+                                              width: 80,
+                                              height: 80,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey.shade100,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Icon(
+                                                Icons.medication,
+                                                size: 40,
+                                                color: Colors.grey.shade400,
+                                              ),
+                                            ),
                                     ),
                                   ),
                                   Padding(
