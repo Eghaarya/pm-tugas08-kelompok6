@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../helpers/database_helper.dart';
+import '../services/transaction_api.dart';
+import '../helpers/token_helper.dart';
 
 class TransaksiScreen extends StatefulWidget {
   const TransaksiScreen({Key? key}) : super(key: key);
@@ -9,6 +11,17 @@ class TransaksiScreen extends StatefulWidget {
 }
 
 class _TransaksiScreenState extends State<TransaksiScreen> {
+  Future<void> _checkAuth() async {
+    final token = await TokenHelper.getToken();
+    if (!mounted) return;
+
+    if (token == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+    } else {
+      _loadTransactions(); // 🔥 pindahkan ke sini
+    }
+  }
+
   List<Map<String, dynamic>> transactions = [];
   List<Map<String, dynamic>> filteredTransactions = [];
   bool isLoading = true;
@@ -18,30 +31,25 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTransactions();
+    _checkAuth();
   }
 
   Future<void> _loadTransactions() async {
     setState(() => isLoading = true);
+
     try {
-      final data = await DatabaseHelper.instance.getAllTransactions();
-      if (mounted) {
-        setState(() {
-          transactions = data;
-          filteredTransactions = data;
-          isLoading = false;
-        });
-      }
+      final token = await TokenHelper.getToken();
+      if (token == null) return;
+
+      final data = await TransactionApi.fetchTransactions(token);
+
+      setState(() {
+        transactions = List<Map<String, dynamic>>.from(data);
+        filteredTransactions = transactions;
+        isLoading = false;
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading transactions: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      setState(() => isLoading = false);
     }
   }
 
@@ -51,14 +59,12 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
         filteredTransactions = transactions;
       } else {
         filteredTransactions = transactions.where((trans) {
-          return trans['invoice_number']
-                  .toString()
-                  .toLowerCase()
-                  .contains(keyword.toLowerCase()) ||
-              trans['customer_name']
-                  .toString()
-                  .toLowerCase()
-                  .contains(keyword.toLowerCase());
+          return trans['invoice_number'].toString().toLowerCase().contains(
+                keyword.toLowerCase(),
+              ) ||
+              trans['customer_name'].toString().toLowerCase().contains(
+                keyword.toLowerCase(),
+              );
         }).toList();
       }
     });
@@ -95,9 +101,11 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
           final monthStart =
               '${now.year}-${now.month.toString().padLeft(2, '0')}-01';
           filteredTransactions = transactions
-              .where((trans) => trans['transaction_date']
-                  .toString()
-                  .startsWith(monthStart.substring(0, 7)))
+              .where(
+                (trans) => trans['transaction_date'].toString().startsWith(
+                  monthStart.substring(0, 7),
+                ),
+              )
               .toList();
           break;
 
@@ -109,8 +117,9 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
 
   Future<void> _showTransactionDetail(Map<String, dynamic> transaction) async {
     // Load transaction items
-    final items = await DatabaseHelper.instance
-        .getTransactionItems(transaction['id']);
+    final items = await DatabaseHelper.instance.getTransactionItems(
+      transaction['id'],
+    );
 
     if (!mounted) return;
 
@@ -132,19 +141,14 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade200),
-                ),
+                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Detail Transaksi',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
@@ -173,10 +177,7 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
                           const SizedBox(height: 8),
                           const Text(
                             'Struk Pembayaran',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
+                            style: TextStyle(fontSize: 14, color: Colors.grey),
                           ),
                           const SizedBox(height: 16),
                           Container(
@@ -252,22 +253,30 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
                     }).toList(),
                     const Divider(),
                     const SizedBox(height: 8),
-                    _buildTotalRow(
-                        'Subtotal', 'Rp ${transaction['subtotal']}'),
+                    _buildTotalRow('Subtotal', 'Rp ${transaction['subtotal']}'),
                     if (transaction['discount'] > 0)
                       _buildTotalRow(
-                          'Diskon', '- Rp ${transaction['discount']}',
-                          color: Colors.red),
+                        'Diskon',
+                        '- Rp ${transaction['discount']}',
+                        color: Colors.red,
+                      ),
                     const Divider(),
-                    _buildTotalRow('Total', 'Rp ${transaction['total']}',
-                        isBold: true, isLarge: true),
+                    _buildTotalRow(
+                      'Total',
+                      'Rp ${transaction['total']}',
+                      isBold: true,
+                      isLarge: true,
+                    ),
                     const SizedBox(height: 8),
                     _buildTotalRow(
-                        'Pembayaran (${transaction['payment_method']})',
-                        'Rp ${transaction['payment_amount']}'),
+                      'Pembayaran (${transaction['payment_method']})',
+                      'Rp ${transaction['payment_amount']}',
+                    ),
                     _buildTotalRow(
-                        'Kembalian', 'Rp ${transaction['change_amount']}',
-                        color: const Color(0xFF4CAF50)),
+                      'Kembalian',
+                      'Rp ${transaction['change_amount']}',
+                      color: const Color(0xFF4CAF50),
+                    ),
                     if (transaction['notes'] != null &&
                         transaction['notes'].toString().isNotEmpty) ...[
                       const SizedBox(height: 16),
@@ -420,169 +429,174 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : filteredTransactions.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.receipt_long,
-                                size: 80, color: Colors.grey.shade400),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Belum ada transaksi',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.receipt_long,
+                          size: 80,
+                          color: Colors.grey.shade400,
                         ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadTransactions,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: filteredTransactions.length,
-                          itemBuilder: (context, index) {
-                            final transaction = filteredTransactions[index];
-                            return InkWell(
-                              onTap: () =>
-                                  _showTransactionDetail(transaction),
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.1),
-                                      spreadRadius: 1,
-                                      blurRadius: 5,
-                                    ),
-                                  ],
+                        const SizedBox(height: 16),
+                        Text(
+                          'Belum ada transaksi',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadTransactions,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filteredTransactions.length,
+                      itemBuilder: (context, index) {
+                        final transaction = filteredTransactions[index];
+                        return InkWell(
+                          onTap: () => _showTransactionDetail(transaction),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 5,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            transaction['invoice_number'],
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
                                             children: [
-                                              Text(
-                                                transaction['invoice_number'],
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
+                                              Icon(
+                                                Icons.calendar_today,
+                                                size: 14,
+                                                color: Colors.grey.shade600,
                                               ),
-                                              const SizedBox(height: 4),
-                                              Row(
-                                                children: [
-                                                  Icon(Icons.calendar_today,
-                                                      size: 14,
-                                                      color:
-                                                          Colors.grey.shade600),
-                                                  const SizedBox(width: 4),
-                                                  Text(
-                                                    '${transaction['transaction_date']} ${transaction['transaction_time']}',
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                      color:
-                                                          Colors.grey.shade600,
-                                                    ),
-                                                  ),
-                                                ],
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '${transaction['transaction_date']} ${transaction['transaction_time']}',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey.shade600,
+                                                ),
                                               ),
                                             ],
                                           ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF4CAF50),
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: const Text(
-                                            'Selesai',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                    const SizedBox(height: 12),
-                                    Row(
-                                      children: [
-                                        Icon(Icons.person,
-                                            size: 16,
-                                            color: Colors.grey.shade600),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          transaction['customer_name'],
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey.shade700,
-                                          ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF4CAF50),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      child: const Text(
+                                        'Selesai',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Icon(Icons.payment,
-                                            size: 16,
-                                            color: Colors.grey.shade600),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          transaction['payment_method'],
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey.shade700,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const Divider(height: 20),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Total',
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Rp ${transaction['total']}',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF1FA397),
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.person,
+                                      size: 16,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      transaction['customer_name'],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.payment,
+                                      size: 16,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      transaction['payment_method'],
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(height: 20),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Total',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Rp ${transaction['total']}',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1FA397),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -647,25 +661,24 @@ class _TransaksiScreenState extends State<TransaksiScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
           ),
           Text(
             value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTotalRow(String label, String value,
-      {bool isBold = false, bool isLarge = false, Color? color}) {
+  Widget _buildTotalRow(
+    String label,
+    String value, {
+    bool isBold = false,
+    bool isLarge = false,
+    Color? color,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(

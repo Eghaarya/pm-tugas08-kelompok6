@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../helpers/database_helper.dart';
+import '../services/auth_api.dart';
+import '../helpers/token_helper.dart';
+import '../services/backup_api.dart';
 
 class LaporanScreen extends StatefulWidget {
   const LaporanScreen({Key? key}) : super(key: key);
@@ -26,25 +29,44 @@ class _LaporanScreenState extends State<LaporanScreen> {
   @override
   void initState() {
     super.initState();
+    _checkToken();
   }
 
-  void _login() {
-    if (_emailController.text == 'admin@apotek.com' &&
-        _passwordController.text == 'admin123') {
+  Future<void> _checkToken() async {
+    final token = await TokenHelper.getToken();
+    if (token != null) {
       setState(() {
         isAuthenticated = true;
       });
       _loadReportData();
+    }
+  }
+
+  Future<void> _login() async {
+    final token = await AuthApi.login(
+      _emailController.text,
+      _passwordController.text,
+    );
+
+    if (token != null) {
+      await TokenHelper.saveToken(token);
+
+      setState(() {
+        isAuthenticated = true;
+      });
+
+      _loadReportData();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Login berhasil!'),
+          content: Text('Login berhasil'),
           backgroundColor: Colors.green,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Email atau password salah!'),
+          content: Text('Login gagal'),
           backgroundColor: Colors.red,
         ),
       );
@@ -91,16 +113,15 @@ class _LaporanScreenState extends State<LaporanScreen> {
     );
 
     if (picked != null) {
-      _generateReport(
-        reportType,
-        picked.start,
-        picked.end,
-      );
+      _generateReport(reportType, picked.start, picked.end);
     }
   }
 
   Future<void> _generateReport(
-      String type, DateTime start, DateTime end) async {
+    String type,
+    DateTime start,
+    DateTime end,
+  ) async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -113,8 +134,10 @@ class _LaporanScreenState extends State<LaporanScreen> {
       final endStr =
           '${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}';
 
-      final transactions = await DatabaseHelper.instance
-          .getTransactionsByDate(startStr, endStr);
+      final transactions = await DatabaseHelper.instance.getTransactionsByDate(
+        startStr,
+        endStr,
+      );
 
       int totalSales = 0;
       for (var trans in transactions) {
@@ -155,8 +178,10 @@ class _LaporanScreenState extends State<LaporanScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1FA397),
                 ),
-                child: const Text('Export PDF',
-                    style: TextStyle(color: Colors.white)),
+                child: const Text(
+                  'Export PDF',
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
             ],
           ),
@@ -166,10 +191,7 @@ class _LaporanScreenState extends State<LaporanScreen> {
       if (mounted) {
         Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -194,8 +216,14 @@ class _LaporanScreenState extends State<LaporanScreen> {
     try {
       final allData = await DatabaseHelper.instance.getAllDataForBackup();
 
-      // Simulate server upload
-      await Future.delayed(const Duration(seconds: 2));
+      //server upload
+      final success = await BackupApi.backup(
+        List<Map<String, dynamic>>.from(allData['transactions']),
+      );
+
+      if (!success) {
+        throw Exception('Backup gagal');
+      }
 
       if (mounted) {
         Navigator.pop(context); // Close loading
@@ -227,10 +255,7 @@ class _LaporanScreenState extends State<LaporanScreen> {
       if (mounted) {
         Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -244,10 +269,7 @@ class _LaporanScreenState extends State<LaporanScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Laporan',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Laporan', style: TextStyle(color: Colors.white)),
         actions: isAuthenticated
             ? [
                 IconButton(
@@ -261,7 +283,14 @@ class _LaporanScreenState extends State<LaporanScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.logout, color: Colors.white),
-                  onPressed: () {
+                  onPressed: () async {
+                    final token = await TokenHelper.getToken();
+                    if (token != null) {
+                      await AuthApi.logout(token);
+                    }
+
+                    await TokenHelper.clearToken();
+
                     setState(() {
                       isAuthenticated = false;
                       _emailController.clear();
@@ -289,27 +318,17 @@ class _LaporanScreenState extends State<LaporanScreen> {
                 color: Color(0xFF1FA397),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.lock,
-                size: 60,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.lock, size: 60, color: Colors.white),
             ),
             const SizedBox(height: 24),
             const Text(
               'Login Diperlukan',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Silakan login untuk mengakses laporan',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -430,10 +449,7 @@ class _LaporanScreenState extends State<LaporanScreen> {
                 children: [
                   const Text(
                     'Ringkasan Hari Ini',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -482,10 +498,7 @@ class _LaporanScreenState extends State<LaporanScreen> {
                   const SizedBox(height: 24),
                   const Text(
                     'Laporan Penjualan',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   _buildReportCard(
@@ -515,10 +528,7 @@ class _LaporanScreenState extends State<LaporanScreen> {
                   const SizedBox(height: 24),
                   const Text(
                     'Laporan Lainnya',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   _buildReportCard(
@@ -526,8 +536,8 @@ class _LaporanScreenState extends State<LaporanScreen> {
                     'Lihat stok produk dan notifikasi stok rendah',
                     Icons.inventory_2,
                     () async {
-                      final lowStock =
-                          await DatabaseHelper.instance.getLowStockProducts(10);
+                      final lowStock = await DatabaseHelper.instance
+                          .getLowStockProducts(10);
                       if (mounted) {
                         showDialog(
                           context: context,
@@ -538,11 +548,14 @@ class _LaporanScreenState extends State<LaporanScreen> {
                                 : Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: lowStock
-                                        .map((p) => ListTile(
-                                              title: Text(p['name']),
-                                              subtitle: Text(
-                                                  'Stok: ${p['stock']} ${p['unit']}'),
-                                            ))
+                                        .map(
+                                          (p) => ListTile(
+                                            title: Text(p['name']),
+                                            subtitle: Text(
+                                              'Stok: ${p['stock']} ${p['unit']}',
+                                            ),
+                                          ),
+                                        )
                                         .toList(),
                                   ),
                             actions: [
@@ -569,7 +582,11 @@ class _LaporanScreenState extends State<LaporanScreen> {
   }
 
   Widget _buildStatCard(
-      String title, String value, IconData icon, Color color) {
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -597,18 +614,12 @@ class _LaporanScreenState extends State<LaporanScreen> {
           const SizedBox(height: 12),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -616,7 +627,11 @@ class _LaporanScreenState extends State<LaporanScreen> {
   }
 
   Widget _buildReportCard(
-      String title, String subtitle, IconData icon, VoidCallback onTap) {
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onTap,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -642,17 +657,11 @@ class _LaporanScreenState extends State<LaporanScreen> {
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 14,
-          ),
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,

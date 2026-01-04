@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../helpers/database_helper.dart';
+import '../helpers/token_helper.dart';
+import '../services/auth_api.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -22,6 +24,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final token = await TokenHelper.getToken();
+    if (token == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }
+
+    final res = await AuthApi.me(token);
+    if (res.statusCode != 200) {
+      await TokenHelper.clearToken();
+      Navigator.pushReplacementNamed(context, '/login');
+      return;
+    }
+
     _loadDashboardData();
   }
 
@@ -54,9 +73,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (e) {
       setState(() => isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading dashboard: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error loading dashboard: $e')));
       }
     }
   }
@@ -69,10 +88,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Dashboard',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
@@ -200,9 +216,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: Center(
                               child: Text(
                                 'Belum ada data penjualan',
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                ),
+                                style: TextStyle(color: Colors.grey.shade600),
                               ),
                             ),
                           )
@@ -313,8 +327,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.check_circle,
-                                    color: Colors.green.shade700),
+                                Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green.shade700,
+                                ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
@@ -415,7 +431,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildStatCard(
-      String title, String value, IconData icon, Color color) {
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -443,18 +463,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 12),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -474,7 +488,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       'September',
       'Oktober',
       'November',
-      'Desember'
+      'Desember',
     ];
     return months[month - 1];
   }

@@ -5,6 +5,8 @@ import 'produk_screen.dart';
 import 'pelanggan_screen.dart';
 import 'dashboard_screen.dart';
 import 'laporan_screen.dart';
+import '../helpers/token_helper.dart';
+import '../services/auth_api.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,6 +16,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final token = await TokenHelper.getToken();
+    if (!mounted) return;
+    if (token == null) {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,7 +108,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const DashboardScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const DashboardScreen(),
+                  ),
                 );
               },
             ),
@@ -116,7 +134,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const TransaksiScreen()),
+                    builder: (context) => const TransaksiScreen(),
+                  ),
                 );
               },
             ),
@@ -139,7 +158,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const PelangganScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const PelangganScreen(),
+                  ),
                 );
               },
             ),
@@ -151,7 +172,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const LaporanScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const LaporanScreen(),
+                  ),
                 );
               },
             ),
@@ -191,10 +214,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          'Mulai: 08:27',
-                          style: TextStyle(fontSize: 14),
-                        ),
+                        Text('Mulai: 08:27', style: TextStyle(fontSize: 14)),
                         Text(
                           'Modal: Rp 500.000',
                           style: TextStyle(fontSize: 14),
@@ -203,8 +223,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.orange,
                       borderRadius: BorderRadius.circular(20),
@@ -226,10 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   'Menu Utama',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -251,7 +270,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const KasirScreen()),
+                          builder: (context) => const KasirScreen(),
+                        ),
                       ),
                     ),
                     _buildMenuCard(
@@ -263,7 +283,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const TransaksiScreen()),
+                          builder: (context) => const TransaksiScreen(),
+                        ),
                       ),
                     ),
                     _buildMenuCard(
@@ -275,7 +296,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const ProdukScreen()),
+                          builder: (context) => const ProdukScreen(),
+                        ),
                       ),
                     ),
                     _buildMenuCard(
@@ -287,7 +309,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const PelangganScreen()),
+                          builder: (context) => const PelangganScreen(),
+                        ),
                       ),
                     ),
                     _buildMenuCard(
@@ -299,7 +322,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const DashboardScreen()),
+                          builder: (context) => const DashboardScreen(),
+                        ),
                       ),
                     ),
                     _buildMenuCard(
@@ -311,7 +335,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const LaporanScreen()),
+                          builder: (context) => const LaporanScreen(),
+                        ),
                       ),
                     ),
                   ],
@@ -324,8 +349,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMenuCard(BuildContext context, String title, IconData icon,
-      Color bgColor, Color iconColor, VoidCallback onTap) {
+  Widget _buildMenuCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color bgColor,
+    Color iconColor,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -355,10 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 12),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
           ],
         ),
