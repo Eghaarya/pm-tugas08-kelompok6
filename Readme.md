@@ -9,7 +9,7 @@ flutter pub get
 flutter run
 ```
 
-### 2. Laravel Backend
+### 2. Laravel Backend (API SANCTUM)
 ```bash
 cd laravel_backend
 composer install
